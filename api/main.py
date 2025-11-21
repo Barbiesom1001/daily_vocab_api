@@ -1,13 +1,15 @@
 from fastapi import FastAPI
-from app.schemas import WordResponse
-from fastapi import HTTPException
-from app.routers import words, practice
-from app.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
+from app.routers import words, practice, stats
+from app.database import engine, Base
+from app.schemas import WordResponse
 
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine) 
+    print("Database tables created successfully or already exist.")
+except Exception as e:
+    print(f"Error creating database tables: {e}") 
 
-# Initialize FastAPI app
 app = FastAPI(
     title="Vocabulary Practice API",
     version="1.0.0",
@@ -24,25 +26,7 @@ app.add_middleware(
 
 app.include_router(words.router, prefix="/api", tags=["words"])
 app.include_router(practice.router, prefix="/api", tags=["practice"])
-
-
-# @app.get("/api/word", response_model=WordResponse)
-# def get_random_word():
-#     """Get a random word"""
-#     # TODO Write logic here....
-#     return WordResponse(
-#         id=2,
-#         word='book',
-#         definition='Reading material',
-#         difficulty_level='Beginner'
-# )
-
-# words = []
-# if len(words) == 0:
-#     raise HTTPException(
-#         status_code=404,
-#         detail="No words availabel in database"
-#     )
+app.include_router(stats.router, prefix="/api", tags=["stats"]) # <-- ADDED
 
 @app.get("/")
 def read_root():
